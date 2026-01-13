@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TicketTierName {
+  VIP
+  FRONT_ROW
+  GA
+}
+
+enum BookingStatus {
+  CONFIRMED
+  FAILED
+}
+
+model TicketTier {
+  id        String           @id @default(uuid())
+  name      TicketTierName   @unique
+  price     Int // price in cents
+  inventory TicketInventory?
+  bookings  BookingItem[]
+}
+
+model TicketInventory {
+  tierId            String @id @default(uuid())
+  quantityAvailable Int
+
+  tier TicketTier @relation(fields: [tierId], references: [id])
+
+  @@index([tierId])
+}
+
+model Booking {
+  id        String        @id @default(uuid())
+  userId    String
+  status    BookingStatus
+  createdAt DateTime      @default(now())
+  items     BookingItem[]
+}
+
+model BookingItem {
+  id        String @id @default(uuid())
+  bookingId String
+  tierId    String
+  quantity  Int
+  price     Int // snapshot price at booking time
+
+  booking Booking    @relation(fields: [bookingId], references: [id])
+  tier    TicketTier @relation(fields: [tierId], references: [id])
+
+  @@index([bookingId])
+  @@index([tierId])
+}
