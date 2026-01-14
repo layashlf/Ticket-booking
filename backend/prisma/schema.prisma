@@ -22,13 +22,17 @@ model TicketTier {
   id        String           @id @default(uuid())
   name      TicketTierName   @unique
   price     Int // price in cents
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
   inventory TicketInventory?
   bookings  BookingItem[]
 }
 
 model TicketInventory {
-  tierId            String @id @default(uuid())
+  tierId            String   @id @default(uuid())
   quantityAvailable Int
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   tier TicketTier @relation(fields: [tierId], references: [id])
 
@@ -40,15 +44,18 @@ model Booking {
   userId    String
   status    BookingStatus
   createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
   items     BookingItem[]
 }
 
 model BookingItem {
-  id        String @id @default(uuid())
+  id        String   @id @default(uuid())
   bookingId String
   tierId    String
   quantity  Int
   price     Int // snapshot price at booking time
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   booking Booking    @relation(fields: [bookingId], references: [id])
   tier    TicketTier @relation(fields: [tierId], references: [id])
