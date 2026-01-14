@@ -4,3 +4,4 @@ import { TicketController } from "../controllers/ticket.controller";
 export const ticketRouter = Router();
 
 ticketRouter.get("/tickets", TicketController.getTickets);
+ticketRouter.post("/book", TicketController.bookTickets);
