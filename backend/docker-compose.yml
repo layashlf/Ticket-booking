@@ -1,3 +1,9 @@
+networks:
+  api-network:
+    name: api-network
+    driver: bridge
+    external: true
+
 services:
   postgres:
     image: postgres:15
@@ -6,6 +12,8 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - api-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
@@ -20,14 +28,12 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    networks:
+      - api-network
     volumes:
       - .:/app
       - /app/node_modules
-    # This ensures Prisma is ready and migrations run every time service starts
-    command: >
-      sh -c "npx prisma generate && 
-             npx prisma migrate deploy && 
-             npx tsx watch src/app.ts"
+    entrypoint: [ "/bin/bash", "./entrypoint.sh", "development" ]
 
 volumes:
   postgres_data:
