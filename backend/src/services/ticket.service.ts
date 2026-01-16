@@ -28,12 +28,14 @@ export async function bookTickets(
 ): Promise<BookingResponse> {
   const { tier, quantity, userId = "mock-user" } = request;
 
+  // Fail early on payment simulation
   if (Math.random() <= 0.1) {
     throw new Error("Payment failed");
   }
 
   return prisma.$transaction(
     async (tx) => {
+      // Lock and Fetch in one atomic step to ensure it reads the latest locked state
       const ticketTier = await tx.ticketTier.findUniqueOrThrow({
         where: { name: tier },
         include: { inventory: true },
@@ -54,6 +56,7 @@ export async function bookTickets(
         throw new Error("Not enough tickets available");
       }
 
+      // Create booking and update inventory
       const booking = await tx.booking.create({
         data: {
           userId,
