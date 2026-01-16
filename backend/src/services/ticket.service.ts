@@ -1,4 +1,4 @@
-import { BookingStatus, TicketTierName } from "@prisma/client";
+import { BookingStatus, TicketTierName, Prisma } from "@prisma/client";
 import { prisma } from "../../prisma/prisma";
 import { BookingResponse, BookRequest, TicketDTO } from "../types";
 
@@ -42,12 +42,12 @@ export async function bookTickets(
       });
 
       // Explicit lock on inventory row
-      await tx.$executeRaw`
+      await tx.$executeRaw(Prisma.sql`
         SELECT 1
         FROM "TicketInventory"
         WHERE "tierId" = ${ticketTier.id}
         FOR UPDATE
-      `;
+      `);
 
       if (
         !ticketTier.inventory ||
