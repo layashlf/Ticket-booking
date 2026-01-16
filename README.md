@@ -222,6 +222,68 @@ PostgreSQL transactions ensure that either all booking steps succeed or none of 
 
 The backend is stateless. Multiple instances can be run in parallel as long as they share the same database. Concurrency control remains correct because it is enforced at the database level.
 
+## Scale Assumptions and Capacity Considerations
+
+The system assumes around 1,000,000 daily active users.
+
+- Peak traffic is expected to reach approximately 50,000 concurrent users, primarily during ticket release windows.
+
+- The primary technical risk at this scale is concurrent access to shared ticket inventory, not request volume alone.
+
+- Multiple users may attempt to book the same ticket tier at the same time, which can lead to overselling if not handled correctly.
+
+### Application Layer
+
+- The backend is stateless, allowing multiple instances of the API to run in parallel.
+
+- Horizontal scaling is achieved by adding more backend instances behind a load balancer.
+
+- No in-memory or application-level locks are used to coordinate bookings.
+
+- All correctness guarantees are delegated to the database.
+
+### Database Layer
+
+- PostgreSQL acts as the single source of truth for ticket inventory.
+
+- Booking operations use serializable transactions with row-level locking on the inventory record.
+
+- Only one transaction can modify a ticket tier inventory row at a time.
+
+- Conflicting booking requests either wait or fail safely without corrupting data.
+
+- Inventory updates are atomic, preventing negative quantities and double booking.
+
+### Read vs Write Behavior
+
+- Read operations such as fetching ticket availability do not require locks and scale efficiently.
+
+- Write operations are intentionally serialized per ticket tier.
+
+- This limits throughput during peak demand but guarantees correctness.
+
+- Short periods of contention are acceptable and expected for ticketing systems.
+
+### Database as the Bottleneck by Design
+
+- The database is intentionally the single point of coordination for ticket inventory.
+
+- It ensures strong correctness guarantees without relying on complex distributed systems.
+
+- Backend scaling improves request handling for reads and non-conflicting writes.
+
+- Contention on writes is expected and acceptable, because ticket inventory consistency is critical.
+
+- This design mirrors real-world ticketing systems, where preventing overselling outweighs maximum throughput.
+
+### Design Trade-off at Scale
+
+- The system prioritizes correctness over maximum throughput.
+
+- Complexity is kept low by avoiding distributed locks or custom coordination logic.
+
+- This approach ensures safe and predictable behavior during high contention windows.
+
 ## Trade Offs and Limitations
 
 This solution makes several deliberate trade offs:
@@ -261,34 +323,19 @@ Start everything from the root directory
 
    This project requires environment variables for both the backend and frontend.
 
-- Backend Environment Setup
+   ```sh
+   cp backend/.env.example backend/.env && cp frontend/.env.example frontend/.env
+   ```
 
-  From the root directory:
-
-  ```sh
-  cd backend
-  cp .env.example .env
-  ```
-
-  Update the values in backend/.env if required.
-  The default values are sufficient for local development using Docker.
-
-- Frontend Environment Setup
-
-  From the root directory:
-
-  ```sh
-  cd frontend
-  cp .env.example .env
-  ```
-
-  Update the frontend environment variables if necessary.
+   Update the environment variables if necessary.
 
 4. Starting the project
 
    ```sh
    bash start.sh
    ```
+
+   > > **Note for Windows Users**: It is recommended to run the startup script using Git Bash or WSL2. Ensure that the repository is cloned with LF (Linux) line endings to avoid shell script errors.
 
    Run backend only
 
