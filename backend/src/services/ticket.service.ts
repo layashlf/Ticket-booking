@@ -6,7 +6,7 @@ import { BookingResponse, BookRequest, TicketDTO } from "../types";
  * Read-only ticket catalog.
  * Safe to scale via caching/CDN.
  */
-export async function getTicketCatalog(): Promise<TicketDTO[] | void> {
+export async function getTicketCatalog(): Promise<TicketDTO[]> {
   const tiers = await prisma.ticketTier.findMany({
     include: { inventory: true },
   });
