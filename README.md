@@ -392,6 +392,8 @@ Start everything from the root directory
 
    > Frontend runs at http://localhost:5173
 
+   > > Please note that if port 5173 is already in use by another process, Vite will automatically increment the port (e.g., 5174, 5175). Check the terminal output for the active URL.
+
 5. Stopping the project
 
    Stop backend only
