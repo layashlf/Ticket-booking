@@ -389,6 +389,8 @@ Start everything from the root directory
    ```
 
    > Backend runs at http://localhost:3001
+   >
+   > > API runs at http://localhost:3001/api
 
    > Frontend runs at http://localhost:5173
 
