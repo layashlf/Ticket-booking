@@ -16,11 +16,27 @@ The application allows users to view ticket availability for multiple ticket tie
 
 ## Repository Structure
 
-```
+```text
 root/
-├── backend/        # Backend API, database access, and business logic
-├── frontend/       # React frontend application
-├── start.sh        # Script to start the system
+├── backend/                # Node.js + TypeScript API
+│   ├── prisma/             # Database schema and migrations
+│   ├── src/
+│   │   ├── controllers/    # Request handling and input validation
+│   │   ├── services/       # Core business logic and transaction management
+│   │   ├── routes/
+│   │   ├── types.ts        # API endpoint definitions
+│   │   └── apps.ts         # Server entry point
+│   └── Dockerfile/scripts  # Backend containerization and scripts
+├── frontend/               # React + TypeScript UI
+│   ├── app/
+│   │   ├── api/            # UI elements (Booking form, Ticket list)
+│   │   ├── routes/         # API fetching logic
+│   │   ├── TicketBooking/  # Ticket booking component
+│   │   ├── root.tsx        # Main application component
+│   │   ├── routes.ts
+│   │   └── types.ts
+│   └── Dockerfile          # Frontend containerization
+├── start.sh                # Automation script for local setup
 └── README.md
 ```
 
@@ -222,6 +238,16 @@ PostgreSQL transactions ensure that either all booking steps succeed or none of 
 
 The backend is stateless. Multiple instances can be run in parallel as long as they share the same database. Concurrency control remains correct because it is enforced at the database level.
 
+### High Availability & Global Distribution
+
+To achieve 99.99% availability for a global user base:
+
+- While the current implementation is a single-region Docker setup, the design intent for 99.99% involves deploying the API across multiple AWS Regions with a Global Load Balancer (like AWS Route53) routing users to the nearest healthy region.
+
+- We would utilize a Multi-AZ (Availability Zone) RDS configuration for automatic failover. For global reads (catalog viewing), we would implement Read Replicas in different geographic regions to reduce latency for international users.
+
+- Static assets for the React frontend would be served via a Global CDN (like CloudFront) to ensure fast load times regardless of the user's country.
+
 ## Scale Assumptions and Capacity Considerations
 
 The system assumes around 1,000,000 daily active users.
@@ -241,6 +267,16 @@ The system assumes around 1,000,000 daily active users.
 - No in-memory or application-level locks are used to coordinate bookings.
 
 - All correctness guarantees are delegated to the database.
+
+### Performance
+
+Performance Optimization (p95 < 500ms) To meet the requirement of p95 < 500ms for booking requests:
+
+- The database transaction is scoped strictly to the inventory check and the booking creation to minimize the time a row-level lock is held.
+
+- We utilize PostgreSQL indexes on the TicketTier identifiers to ensure that `SELECT ... FOR UPDATE` queries execute in constant time.
+
+- In a production environment, we would use a tool like PgBouncer to manage the 50,000 concurrent user connections, preventing the overhead of creating new database connections for every request.
 
 ### Database Layer
 
