@@ -18,9 +18,9 @@ The application allows users to view ticket availability for multiple ticket tie
 
 ```
 root/
-├── backend/ Backend API, database access, and business logic
-├── frontend/ React frontend application
-├── start.sh Script to start the system
+├── backend/        # Backend API, database access, and business logic
+├── frontend/       # React frontend application
+├── start.sh        # Script to start the system
 └── README.md
 ```
 
@@ -240,25 +240,86 @@ These choices were made to keep the solution focused.
 
 Start everything from the root directory
 
-```sh
-bash start.sh
-```
+1. Clone the Repository
 
-Run backend only
+   ```sh
+   git clone https://github.com/layashlf/Ticket-booking.git
+   cd Ticket-booking
+   ```
 
-```sh
-cd backend
-bash start.sh
-```
+2. Prerequisites
 
-Run frontend only
+   Ensure the following are installed on your system:
 
-```sh
-cd frontend
-npm install
-npm run dev
-```
+   - Docker (with Docker Compose v2)
 
-> Backend runs at http://localhost:3001
+   - Node.js 18 or newer
 
-> Frontend runs at http://localhost:5173
+   - Git
+
+3. Environment Variable Setup
+
+   This project requires environment variables for both the backend and frontend.
+
+- Backend Environment Setup
+
+  From the root directory:
+
+  ```sh
+  cd backend
+  cp .env.example .env
+  ```
+
+  Update the values in backend/.env if required.
+  The default values are sufficient for local development using Docker.
+
+- Frontend Environment Setup
+
+  From the root directory:
+
+  ```sh
+  cd frontend
+  cp .env.example .env
+  ```
+
+  Update the frontend environment variables if necessary.
+
+4. Starting the project
+
+   ```sh
+   bash start.sh
+   ```
+
+   Run backend only
+
+   ```sh
+   cd backend
+   bash start.sh
+   ```
+
+   Run frontend only
+
+   ```sh
+   cd frontend
+   npm install
+   npm run dev
+   ```
+
+   > Backend runs at http://localhost:3001
+
+   > Frontend runs at http://localhost:5173
+
+5. Stopping the project
+
+   Stop backend only
+
+   ```sh
+   cd backend
+   bash start.sh stop
+   ```
+
+   Stop frontend only
+
+   ```sh
+   Ctrl + C (on Windows and macOS/Linux)
+   ```
